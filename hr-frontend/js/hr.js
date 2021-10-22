@@ -82,6 +82,7 @@ class HrViewModel {
         this.insertFile = this.insertFile.bind(this);
         this.dragover = this.dragover.bind(this);
         this.copyEmployee = this.copyEmployee.bind(this);
+        /*
         this.socket = io("ws://localhost:7001");
         this.socket.on('connect', () => {
             toastr.success("Connected to the server!")
@@ -98,6 +99,8 @@ class HrViewModel {
                 toastr.success(`${emp.fullName} is hired!`)
             });
         });
+
+         */
     }
 
     copyEmployee(emp) {
