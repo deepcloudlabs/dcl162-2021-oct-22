@@ -25,9 +25,29 @@ fields = ["identity", "fullName", "iban", "photo", "birthYear", "salary", "depar
 @app.route("/hr/api/v1/employees", methods=["POST"])
 def addEmployee():
     emp = extract_employee_from_request(request, fields)
+    emp["_id"] = emp['identity']
     hr_db.insert_one(emp)
     socketio.emit('hire', emp)
     return jsonify({'status': 'ok'})
+
+
+@app.route("/hr/api/v1/employees/<identity>", methods=["PUT","PATCH"])
+def updateEmployee(identity):
+    emp = extract_employee_from_request(request, fields)
+    emp["_id"] = identity
+    employee = hr_db.find_one_and_update(
+        {"_id": identity},
+        {"$set": emp},
+        upsert=False
+    )
+    return jsonify(employee)
+
+@app.route("/hr/api/v1/employees/<identity>", methods=["DELETE"])
+def removeEmployee(identity):
+    employee = hr_db.find_one({"_id": identity})
+    hr_db.delete_one({"_id": identity})
+    socketio.emit('fire', employee)
+    return jsonify(employee)
 
 """
     2. REST ove Websocket
