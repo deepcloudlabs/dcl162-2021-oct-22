@@ -1,0 +1,42 @@
+"""
+API: 1) rest over http: pull
+     2) rest over websocket: pull/push/publish-subscribe
+"""
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from flask_socketio import SocketIO
+from pymongo import MongoClient
+
+from hr.util import extract_employee_from_request
+
+app = Flask(__name__)
+app.config['DEBUG'] = True
+cors = CORS(app)  # cross origin
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+mongo_client = MongoClient("mongodb://localhost:27017")
+hr_db = mongo_client['hr']
+"""
+    1. REST over HTTP
+"""
+fields = ["identity", "fullName", "iban", "photo", "birthYear", "salary", "department", "fulltime"]
+
+
+@app.route("/hr/api/v1/employees", methods=["POST"])
+def addEmployee():
+    emp = extract_employee_from_request(request, fields)
+    hr_db.insert_one(emp)
+    socketio.emit('hire', emp)
+    return jsonify({'status': 'ok'})
+
+"""
+    2. REST ove Websocket
+"""
+
+
+@socketio.on('message')
+def handle_message(msg):
+    print(f"received message: {msg}")
+
+
+socketio.run(app, port=7001)
